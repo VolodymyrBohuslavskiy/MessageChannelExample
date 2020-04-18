@@ -1,0 +1,47 @@
+<apex:page id="TestMessageVF" lightningStylesheets="true">
+    <div>
+        <p>Message To Send</p>
+        <input type="text" id="theMessage"/>
+        <br/>
+        <button onclick="publishMessage()">Send Message</button>
+        <br/>
+        <button onclick="subscribeMC()">Subscribe</button>
+        <br/>
+        <button onclick="unsubscribeMC()">Unsubscribe</button>
+        <br/>
+        Latest Received message:
+        <div id="ReceivedMessage"></div>
+    </div>
+    <script>
+        var SAYWHATMC = "{!$MessageChannel.SayWhat__c}";
+        var subscriptionToMC;
+
+        function publishMessage() {
+            const payload = {
+                sourceSystem: "VF",
+                messageToSend: document.getElementById('theMessage').value
+            };
+
+            sforce.one.publish(SAYWHATMC, payload);
+
+        }
+
+        function onMCPublished(message) {
+            var block = document.querySelector("#ReceivedMessage");
+            block.innerHTML = message ? 'Message: ' + message.messageToSend + '. Sent From: ' + message.sourceSystem : 'no message payload';
+        }
+
+        function subscribeMC() {
+            if (!subscriptionToMC) {
+                subscriptionToMC = sforce.one.subscribe(SAYWHATMC, onMCPublished, {scope: "APPLICATION"});
+            }
+        }
+
+        function unsubscribeMC() {
+            if (subscriptionToMC) {
+                sforce.one.unsubscribe(subscriptionToMC);
+                subscriptionToMC = null;
+            }
+        }
+    </script>
+</apex:page>
